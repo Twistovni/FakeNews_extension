@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <img src="icon48.png" class="logo" alt="Logo">
+            <h1>Verificador de Fatos</h1>
+        </header>
+
+        <main class="main-content">
+            <p class="title-label">Texto a ser analisado:</p>
+            <textarea id="text-to-analyze" class="title-box" rows="4" placeholder="Aguardando título da página..."></textarea>
+            
+            <div id="result-area" class="result-box" style="display: none;"></div>
+
+            <button id="analyze-button" class="analyze-btn">
+                <span>Analisar Texto</span>
+            </button>
+        </main>
+
+        <footer class="footer">
+            <span class="setting-label">IA Avançada</span>
+            <label class="switch">
+                <input type="checkbox" id="llm-toggle">
+                <span class="slider round"></span>
+            </label>
+        </footer>
+    </div>
+    <script src="popup.js"></script>
+</body>
+</html>

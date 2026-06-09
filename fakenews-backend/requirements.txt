@@ -1,0 +1,9 @@
+fastapi
+uvicorn
+httpx
+python-dotenv
+pydantic
+beautifulsoup4
+lxml
+google-api-python-client
+openai

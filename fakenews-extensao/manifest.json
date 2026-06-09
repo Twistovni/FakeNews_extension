@@ -1,0 +1,19 @@
+{
+  "manifest_version": 3,
+  "name": "Verificador de Fatos (Final)",
+  "version": "8.0",
+  "description": "Analisa notícias com RAG local e IA para fornecer contexto, confiança e fontes.",
+  "permissions": ["activeTab", "scripting", "storage"],
+  "host_permissions": ["http://localhost:8000/*"],
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "48": "icon48.png",
+      "128": "icon128.png"
+    }
+  },
+  "icons": {
+    "48": "icon48.png",
+    "128": "icon128.png"
+  }
+}
