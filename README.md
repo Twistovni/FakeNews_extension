@@ -151,6 +151,3 @@ Este projeto tem fins **educacionais e de pesquisa** em arquiteturas de Intelig�
 
 **Luiz Santos** — Analista de Suporte / Engenharia de Software  
 *Construindo pontes entre Inteligência Artificial e a verdade factual.*
-```
-
-*Nota técnica: Certifique-se de apagar todo o conteúdo anterior antes de colar este código limpo. Ele possui quebras de linha estritas (`\n`) antes e depois de cada abertura e fechamento de bloco de marcação (com as três crases), o que impedirá que o parser do GitHub aglutine o texto.*
