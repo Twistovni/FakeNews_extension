@@ -5,82 +5,86 @@
 ![Google Chrome](https://img.shields.io/badge/Google_Chrome-4285F4?style=for-the-badge&logo=google-chrome&logoColor=white)
 ![AI](https://img.shields.io/badge/AI-Groq%20%7C%20OpenRouter-orange?style=for-the-badge)
 
-Um ecossistema híbrido de Fact-Checking composto por uma **Extensão para Chrome** e um **Backend avançado em Python (FastAPI)**. O A.I.D. cruza inteligência artificial, bancos de dados vetoriais locais e ferramentas de busca na web para validar a veracidade de notícias em tempo real, fornecendo aos usuários um dossiê investigativo e contexto educacional.
+O **A.I.D.** é um ecossistema híbrido e inteligente de *Fact-Checking* composto por uma **Extensão para Google Chrome** e um **Servidor de Alta Performance em Python (FastAPI)**. O sistema une processamento de linguagem natural (NLP), bancos de dados vetoriais locais e raspagem ativa na web para mapear, validar e desmistificar manchetes em tempo real.
 
-Projeto focado em combater as *Fake News* através de arquiteturas de Inteligência Artificial de última geração, incluindo **RAG Híbrido** e **Consenso Multi-Agente (Tribunal de Fatos)**.
+Desenvolvido como projeto final para a disciplina **Construção de Assistentes Virtuais Inteligentes**, o A.I.D. implementa as arquiteturas de recuperação de informações mais robustas do mercado, como **Retrieval-Augmented Generation (RAG) Híbrido** e **Reranqueamento Multicritério** de evidências.
 
 ---
 
-## ✨ Funcionalidades
+## ✨ Funcionalidades do MVP
 
-* ⚡ **RAG Híbrido Ultrarrápido (Offline)** — Busca instantânea de notícias em uma base de conhecimento local, cruzando similaridade semântica (vetores) e textual (strings).
-* 🌐 **Fact-Checking Ativo na Web** — Quando a notícia não está no banco local, o Agente busca ativamente evidências via **NewsAPI** ou usa o **DuckDuckGo** como fallback anti-bloqueio.
-* 🧠 **Tribunal de Fatos (Consenso Multi-Agente)** — As evidências coletadas são processadas paralelamente por múltiplas LLMs (Groq e OpenRouter). O sistema avalia a concordância entre os modelos para garantir um veredito livre de alucinações.
-* 🎓 **Contexto Educacional Rico** — Não entrega apenas "Verdadeiro" ou "Falso". A IA gera exemplos de manchetes reais (**🟢 Cenário Factual**) e boatos clássicos (**🔴 Boato Clássico**) sobre o tema.
-* 👁️ **Expansão de Consulta (Visão Periférica)** — Antes de buscar na web, uma LLM extrai as entidades principais do título, otimizando os termos de busca para encontrar as melhores evidências.
-* 🧹 **Filtro Global de Ruído** — Sanitização automática das manchetes capturadas no navegador, removendo sufixos de portais (ex: " | G1", " - UOL") via Regex.
+*   ⚡ **RAG Híbrido Avançado (Offline)** — Em vez de depender apenas de buscas semânticas densas, o sistema combina a precisão de embeddings vetoriais locais (`all-MiniLM-L6-v2` via ChromaDB) com buscas léxicas rápidas (overlap exato de palavras filtrando stopwords), superando cenários de paráfrases e nomes próprios.
+*   📊 **Reranqueamento Multicritério (Reranking)** — Os resultados recuperados passam por uma fórmula de pontuação de relevância composta, priorizando as melhores evidências com base em:
+    $$\text{Score Final} = (0.35 \times \text{Lexical}) + (0.35 \times \text{Semântico}) + (0.15 \times \text{Recência}) + (0.15 \times \text{Confiança da Fonte})$$
+*   📰 **Metadados Ricos e Estruturados** — A pipeline local não armazena apenas títulos. Ela gerencia o ciclo de vida da notícia mapeando URL oficial, data de publicação, veículo de imprensa de origem e resumos conceituais gerados por IA.
+*   🌐 **Fact-Checking Ativo na Web** — Quando a notícia está fora da base local, o agente autônomo utiliza a **NewsAPI** como canal primário ou raspa o **Google Search** (via seletores anti-frágeis com BeautifulSoup) como fallback resiliente.
+*   🧠 **Tribunal de Fatos (Consenso Multi-Agente)** — As evidências coletadas em tempo real são enviadas para avaliação em paralelo pelas LLMs **Groq (Llama 3)** e **OpenRouter**. Um orquestrador de consenso avalia as convergências entre os modelos para mitigar alucinações.
+*   👁️ **Expansão de Consulta (Query Expansion)** — Antes de consultar a web, uma LLM extrai o núcleo conceitual da manchete (palavras-chave e entidades), eliminando ruídos editoriais e garantindo buscas assertivas.
+*   🧹 **Filtro Global de Ruído** — Sanitização automática por expressões regulares (Regex) para remover assinaturas de portais (ex: " | G1", " - UOL") capturadas no navegador.
 
 ---
 
 ## 🏗️ Arquitetura do Sistema
 
-O backend utiliza uma arquitetura adaptativa que decide o melhor fluxo de acordo com as configurações do usuário:
+O fluxo de dados foi projetado em camadas claras (Coleta, Recuperação Híbrida, Reranqueamento e Explicação), dividindo o processo de forma adaptativa conforme as configurações de IA ativadas pelo usuário:
 
 ```text
-[ 🧩 Extensão Chrome ] ➔ Captura Manchete
+[ 🧩 Extensão Chrome ] ➔ Captura Manchete + Extrai Contexto (YouTube/Aba)
          ↓
-[ 🧹 Filtro Regex ]    ➔ Sanitização de Ruídos
+[ 🧹 Filtro Regex ]    ➔ Sanitização de Títulos e Ruídos Editoriais
          ↓
 [ ⚙️ Orquestrador FastAPI ]
     /                 \
-  IA OFF             IA ON
+  IA OFF (Offline)    IA ON (Ativo na Web)
     ↓                   ↓
-[ 🗄️ RAG Local ]   [ 🌐 Multi-Tools (NewsAPI / DDGS) ]
-  (ChromaDB)            ↓
-                   [ ⚖️ Tribunal de Fatos ]
-                  (Groq + OpenRouter)
-                       ↓
-[ 📩 Resposta (Dossiê + Veredito + Contexto) ]
+[ 🗄️ RAG Híbrido ]     [ 👁️ Expansão de Consulta (LLM) ]
+(Busca Semântica         ➔ Extração de Entidades e Termos de Busca
+ + Busca Lexical)               ↓
+    ↓                  [ 🌐 Busca Multi-Tools ]
+[ 📊 Reranking ]       ➔ Coleta de Evidências (NewsAPI ou Google Search)
+(Fórmula de Score               ↓
+ Ponderado)            [ ⚖️ Tribunal de Fatos ]
+                        ➔ Consenso Paralelo (Groq + OpenRouter)
+    \                 /
+[ 📩 Resposta formatada no Frontend (Dossiê + Veredito + Contexto Factual) ]
 ```
 
 ---
 
 ## 🛠️ Tecnologias Utilizadas
 
-| Tecnologia | Uso no Projeto |
-| :--- | :--- |
-| **FastAPI** | Framework principal do Backend, comunicação via rotas REST. |
-| **ChromaDB** | Banco de dados vetorial para o funcionamento do RAG Local. |
-| **Sentence-Transformers** | Criação de embeddings (`all-MiniLM-L6-v2`) para busca semântica. |
-| **Groq API / Llama 3** | Modelo de Linguagem primário ultrarrápido para extração e inferência. |
-| **OpenRouter API** | Modelos de Linguagem secundários para o "Tribunal de Consenso" e failover. |
-| **NewsAPI & DDGS** | Coleta estruturada de evidências jornalísticas na web. |
-| **JS / HTML / CSS** | Desenvolvimento da Extensão para Google Chrome (Frontend). |
+| Componente | Tecnologia | Uso no Projeto |
+| :--- | :--- | :--- |
+| **Backend** | **FastAPI** | Framework assíncrono de alta performance para exposição de rotas REST. |
+| **Banco de Dados** | **ChromaDB** | Banco vetorial local para indexação rápida dos embeddings RAG. |
+| **Embeddings** | **Sentence-Transformers** | Modelo `all-MiniLM-L6-v2` para criação de vetores de alta fidelidade. |
+| **NLP & LLM** | **Groq API / OpenRouter** | Modelos Llama 3.1 para o Tribunal de Fatos, classificação e expansão de query. |
+| **Fact-Check** | **Google Fact Check API** | Integração oficial para validação automatizada de boatos conhecidos. |
+| **Scraping** | **BeautifulSoup4 & Lxml** | Raspagem e parsing de portais nacionais de notícia para alimentar a base. |
+| **Frontend** | **JS / HTML5 / CSS3** | Extensão V3 nativa do Chrome com design polido e responsivo. |
 
 ---
 
 ## 📋 Pré-requisitos
 
-* **Python 3.9** ou superior instalado.
-* Navegador **Google Chrome**.
-* Chaves de API ativas das seguintes plataformas (Planos Gratuitos):
-  * [Groq Cloud](https://console.groq.com/)
-  * [OpenRouter](https://openrouter.ai/)
-  * [NewsAPI](https://newsapi.org/)
+*   **Python 3.9** ou superior instalado.
+*   Navegador **Google Chrome** (com Modo do Desenvolvedor ativado).
+*   Chaves de API (Planos Gratuitos):
+    *   [Groq Cloud](https://console.groq.com/)
+    *   [OpenRouter](https://openrouter.ai/)
+    *   [NewsAPI](https://newsapi.org/)
 
 ---
 
 ## 🚀 Como Instalar e Rodar
 
 ### 1. Clone o repositório
-
 ```bash
-git clone https://github.com/SEU_USUARIO/NOME_DO_REPOSITORIO.git
-cd NOME_DO_REPOSITORIO/fakenews-backend
+git clone https://github.com/Twistovni/A.I.D.-Fakenews.git
+cd A.I.D.-Fakenews/fakenews-backend
 ```
 
 ### 2. Crie e ative o ambiente virtual
-
 ```bash
 # Windows
 python -m venv venv
@@ -92,62 +96,62 @@ source venv/bin/activate
 ```
 
 ### 3. Instale as dependências
-
 ```bash
-pip install fastapi uvicorn httpx pydantic beautifulsoup4 lxml google-api-python-client sentence-transformers scikit-learn numpy chromadb==0.4.24 newsapi-python duckduckgo-search
+pip install -r requirements.txt
 
-# IMPORTANTE: Forçar versão do NumPy compatível com ChromaDB
+# Garantir a compatibilidade do NumPy com o ChromaDB local
 pip install numpy==1.26.4 --force-reinstall
 ```
 
 ### 4. Configure as Chaves de API
+Insira suas chaves correspondentes nos campos do cabeçalho de configuração dos arquivos `main.py` e `atualizador_rag.py`. Em produção, utilize preferencialmente variáveis de ambiente (`.env`).
 
-Abra os arquivos `main.py` e `atualizador_rag.py` e insira suas respectivas `API_KEYS` nas variáveis de configuração no topo do arquivo. *(Em produção, utilize variáveis de ambiente `.env`)*.
-
-### 5. Alimente o Banco de Dados
-
-Antes de rodar a API, popule seu banco local executando o robô de coleta:
-
+### 5. Alimente o Banco de Dados (Web Scraping + ETL)
+Rode a pipeline de coleta estruturada e vetorização automática para popular o banco vetorial local:
 ```bash
 python3 atualizador_rag.py
 ```
 
-### 6. Inicie o Servidor
-
+### 6. Inicie o Servidor Backend
+Inicie a aplicação utilizando o interpretador do ambiente virtual ativo:
 ```bash
-uvicorn main:app --reload
+python3 -m uvicorn main:app --reload
 ```
-
-O servidor estará rodando em `http://127.0.0.1:8000`.
+O servidor estará rodando em: `http://127.0.0.1:8000`
 
 ---
 
-## 📁 Estrutura do Projeto
+## 📁 Estrutura de Pastas do Projeto
 
 ```text
 A.I.D.-Fakenews/
-├── fakenews-backend/
-│   ├── main.py               # API, RAG, Multi-Tools e Tribunal de IAs
-│   ├── atualizador_rag.py    # Pipeline ETL que faz scraping e popula o DB
-│   ├── database.json         # Base de conhecimento local em texto
-│   └── (venv)/               # Ambiente virtual Python
+├── fakenews-backend/         # Camada de Inteligência e Armazenamento
+│   ├── main.py               # API FastAPI, RAG Híbrido, Reranking e Tribunal de Fatos
+│   ├── atualizador_rag.py    # Pipeline ETL de notícias com metadados estruturados
+│   ├── upgrade_database.py   # Script utilitário para atualização de base legada
+│   ├── database.json         # Base de conhecimento persistida com metadados ricos
+│   ├── requirements.txt      # Gerenciador de dependências limpo
+│   └── (venv)/               # Ambiente virtual local (ignorado pelo Git)
 │
-└── extension/                # Frontend (Não incluído neste repositório)
-    ├── manifest.json
-    ├── popup.html
-    ├── popup.js
-    └── styles.css
+└── fakenews-extensao/        # Camada de Apresentação (Extensão Chrome)
+    ├── manifest.json         # Manifesto V3 de registro da Extensão
+    ├── popup.html            # Interface de usuário moderna e semântica
+    ├── popup.js              # Capturador dinâmico de abas e requisições assíncronas
+    ├── style.css             # Estilização moderna e refinamento de espaçamento
+    ├── content_script.js     # Script de raspagem específico para o YouTube
+    ├── icon48.png            # Identidade visual da extensão (48px)
+    └── icon128.png           # Identidade visual da extensão (128px)
 ```
 
 ---
 
 ## ⚠️ Aviso Legal
 
-Este projeto tem fins **educacionais e de pesquisa** em arquiteturas de Inteligência Artificial e combate à desinformação. Nenhum veredito gerado pelo A.I.D. deve ser considerado uma verdade absoluta ou laudo oficial. Sempre cheque fontes de jornais reconhecidos e agências de fact-checking.
+Este ecossistema foi desenvolvido exclusivamente para fins **educacionais e de pesquisa científica** em arquiteturas de Inteligência Artificial e combate à desinformação de massa. O sistema apoia-se em análise de probabilidade semântica e correlação de dados públicos na web. Os vereditos emitidos pelo A.I.D. não constituem laudo oficial ou verdade factual absoluta. Sempre confirme as informações em veículos de imprensa de reputação consolidada.
 
 ---
 
 ## 👨‍💻 Autor
 
 **Luiz Santos** — Analista de Suporte / Engenharia de Software  
-*Construindo pontes entre Inteligência Artificial e a verdade factual.*
+*Construindo pontes robustas entre Inteligência Artificial de ponta e a verdade factual.*
